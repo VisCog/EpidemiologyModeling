@@ -1,4 +1,4 @@
-#I wrote this GUI to let us see how changing the parameters in the SIR model affects things.
+#Chris:  I wrote this GUI to let us see how changing the parameters in the SIR model affects things.
 #One upshot seems to be that setting N = 1 makes the infection rate redundant.
 #The screen refreshes 10 times a second to produce the animated effect.
 #It also repeatedly instantiates the model class, which is less than ideal :\
