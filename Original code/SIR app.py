@@ -1,7 +1,5 @@
 #Chris:  I wrote this GUI to let us see how changing the parameters in the SIR model affects things.
 #One upshot seems to be that setting N = 1 makes the infection rate redundant.
-#The screen refreshes 10 times a second to produce the animated effect.
-#It also repeatedly instantiates the model class, which is less than ideal :\
 
 
 import matplotlib.pyplot as plt
@@ -128,6 +126,33 @@ class controls_menu(Frame):
         self.initial_infects.grid()
         initial_box.grid()
         self.immune_and_infected.grid(row = 1, column = 2)
+        
+     #these methods are for more economic updating.   
+     def record_parameters(self):
+        self.gamma_val = self.gamma_scale.get()
+        self.beta_val = self.beta_scale.get()
+        self.delta_val = self.delta_scale.get()
+        self.pop_val = self.total_pop.get()
+        self.time_val = self.total_time.get()
+        self.immune_val = self.immune.get()
+        self.infects_val = self.initial_infects.get()
+    def change_in_parameters(self):
+        if self.gamma_val != self.gamma_scale.get():
+            return True
+        if self.beta_val != self.beta_scale.get():
+            return True
+        if self.delta_val != self.delta_scale.get():
+            return True
+        if self.pop_val != self.total_pop.get():
+            return True
+        if self.time_val != self.total_time.get():
+            return True
+        if self.immune_val != self.immune.get():
+            return True
+        if self.infects_val != self.initial_infects.get():
+            return True
+        else:
+            return False
 
 class display_frame(Frame):
     def __init__(self, parent):
@@ -158,27 +183,30 @@ class mini_display(Frame):
 
 #update function
 def update(display_frame):
-    mini_display = display_frame.mini_display
-    #clear both axes
-    display_frame.ax.clear()
-    mini_display.ax.clear()
+    controls = display_frame.parent.controls
+    if controls.change_in_parameters():
+        controls.record_parameters()
+        mini_display = display_frame.mini_display
+        #clear both axes
+        display_frame.ax.clear()
+        mini_display.ax.clear()
     
-    #produce a new model using current parameters
-    model = SIR_model(display_frame.parent)
+        #produce a new model using current parameters
+        model = SIR_model(display_frame.parent)
 
-    #plot the components of the model
-    display_frame.ax.plot(model.T, model.S)
-    display_frame.ax.plot(model.T, model.I)
-    display_frame.ax.plot(model.T, model.R)
-    display_frame.ax.plot(model.T, model.D)
-    display_frame.ax.legend(['Susceptible','Infected', 'Removed', 'Dead'])
-    display_frame.canvas.draw()
+        #plot the components of the model
+        display_frame.ax.plot(model.T, model.S)
+        display_frame.ax.plot(model.T, model.I)
+        display_frame.ax.plot(model.T, model.R)
+        display_frame.ax.plot(model.T, model.D)
+        display_frame.ax.legend(['Susceptible','Infected', 'Removed', 'Dead'])
+        display_frame.canvas.draw()
     
-    #plot mini display infects in log scale
-    mini_display.ax.plot(model.T, model.I, color = 'orange')
-    mini_display.ax.set_yscale('log')
-    mini_display.ax.legend(['Infected, log scale'])
-    mini_display.canvas.draw()
+        #plot mini display infects in log scale
+        mini_display.ax.plot(model.T, model.I, color = 'orange')
+        mini_display.ax.set_yscale('log')
+        mini_display.ax.legend(['Infected, log scale'])
+        mini_display.canvas.draw()
        
 app = main_window()
 app.mainloop()
