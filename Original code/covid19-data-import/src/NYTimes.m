@@ -39,8 +39,8 @@ classdef NYTimes < DataSource
             obj.data = obj.getData();
         end
 
-        function cacheData(~)
-            websave(obj.URL, [obj.DATA_DIR, 'nytimes-counties.csv']);
+        function cacheData(obj)
+            websave([obj.DATA_DIR, 'nytimes-counties.csv'], obj.URL);
         end
     end
     

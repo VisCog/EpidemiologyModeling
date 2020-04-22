@@ -2,7 +2,9 @@
 % How to access the imported data for each source and a few small examples
 % for how the data could then be used.
 
+% ------------------------------------------------------------------------
 %% European CDC datset
+% ------------------------------------------------------------------------
 ecdc = EuroCDC();
 
 % View dataset
@@ -32,8 +34,9 @@ legend(ax, {'cases', 'deaths'},...
     'Location', 'northwest', 'FontSize', 12);
 title(ax, 'Canada');
 
-
+% ------------------------------------------------------------------------
 %% CovidTrackingProject
+% ------------------------------------------------------------------------
 % This is the most complicated dataset as there were multiple endpoints 
 % with distinct datasets
 ctp = CovidTrackingProject();
@@ -63,9 +66,8 @@ plot(ax_hospitalizations, T.date, T.hospitalizedCumulative,...
     '-ob', 'LineWidth', 1.5,...
     'DisplayName', 'New York');
 legend(ax_hospitalizations, 'FontSize', 11, 'Location', 'northwest');
-% These datasets are discussed further below.
 
-% -------------------------------------------------------------------------
+%
 % In addition, there were endpoints to query the current total numbers for
 % the USA and at the state-level. This was a little redundant so it's not 
 % saved as a distinct data property, however, I did include functions for 
@@ -101,3 +103,57 @@ fprintf('%s has %u people hospitalized\n', T{ind, 'state'}, val);
 % Which state (or territory) has the least people hospitalized?
 [val, ind] = min(T.hospitalizedCurrently);
 fprintf('%s has %u people hospitalized\n', T{ind, 'state'}, val);
+
+% ------------------------------------------------------------------------
+%% Citymapper - City Mobility Index (CMI)
+% ------------------------------------------------------------------------
+% Instantiate the Citymapper class
+ctm = Citymapper();
+
+% Check out the data
+T = ctm.data;
+openvar('T');
+
+% To check which cities are listed
+ctm.getCities()
+
+% Plot CMI in a few American cities
+americanCities = {'Boston', 'Chicago', 'LosAngeles', 'NewYorkCity',... 
+    'Philadelphia', 'SanFrancisco', 'Seattle', 'WashingtonDC'};
+
+% Alternative to MATLAB's default color order
+colorList = othercolor('Spectral8', numel(americanCities));
+
+ax_usa_cmi = axes('Parent', figure('Name', 'American CMI'));
+hold(ax_usa_cmi, 'on');
+for i = 1:numel(americanCities)
+    % x100 to convert to % values
+    plot(ax_usa_cmi, T.Date, 100 * T.(americanCities{i}),... 
+        'Color', colorList(i, :), 'LineWidth', 1.5,...
+        'DisplayName', americanCities{i});
+end
+ylabel(ax_usa_cmi, 'City Mobility Index');
+legend(ax_usa_cmi, 'Location', 'northeast', 'FontSize', 14);
+title(ax_usa_cmi, '% of American cities moving compared to usual')
+grid(ax_usa_cmi, 'on');
+ax_usa_cmi.XLim(2) = max(T.Date);
+
+% Single city bar graph similar to those on Citymapper's website
+ax_seattle_cmi = axes('Parent', figure('Name', 'Seattle CMI'));
+% x100 to convert to % value
+barHandle = bar(ax_seattle_cmi, T.Date, 100*T.Seattle);
+ylabel(ax_seattle_cmi, 'City Mobility Index');
+grid(ax_seattle_cmi, 'on');
+title(ax_seattle_cmi, '% of Seattle moving compared to usual');
+
+% The large amount of NaNs in the dataset throw off the x-axis limits and 
+% I got tired of adjusting them manually, so I added in a function to 
+% return the lowest and highest non-NaN dates.
+set(ax_seattle_cmi, 'XLim', ctm.getCityDateRange('Seattle'), 'YLim', [0 120]);
+
+% Add colormap
+cMap = othercolor('RdYlGn8', 100);
+ind = ceil(100*(T.Seattle/max(T.Seattle)));
+cData = zeros(numel(ind), 3);
+cData(~isnan(ind), :) = cMap(ind(~isnan(ind)), :);
+set(barHandle, 'CData', cData, 'FaceColor', 'flat');

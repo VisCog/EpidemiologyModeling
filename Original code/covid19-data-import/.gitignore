@@ -1,4 +1,5 @@
 *.asv
 *.m~
+*.DS_store
 *.csv
 *.json
