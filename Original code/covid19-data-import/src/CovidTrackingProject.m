@@ -126,9 +126,9 @@ classdef CovidTrackingProject < DataSource
             % Project's data was pretty involved, so I moved it into
             % separate functions rather than pasting it all into getData.
             fprintf('\tParsing national data...\n')
-            nation = obj.parseAmericaDaily(importedNationData);
+            nation = obj.parseDailyData(importedNationData);
             fprintf('\tParsing state data...\n');
-            states = obj.parseStatesDaily(importedStateData);
+            states = obj.parseDailyData(importedStateData);
         end
     end
 
@@ -136,15 +136,8 @@ classdef CovidTrackingProject < DataSource
     % post-processing so there are a few extra functions to handle that.
     % More about this can be seen in the tutorial.
     methods (Access = private)
-        function T = parseAmericaDaily(obj, importedData)
-            % PARSEAMERICADAILY  Current USA data
-            T = struct2table(cat(1, importedData{:}));
-
-            T = obj.fixImportedData(T);
-        end
-
-        function T = parseStatesDaily(obj, importedData)
-            % Daily data for each state, DC and territory
+        function T = parseDailyData(obj, importedData)
+            % Deal with missing fields and data formats
             data = importedData;
             maxFieldNames = fieldnames(data{1});
             maxFields = numel(maxFieldNames);
