@@ -43,7 +43,7 @@ data = importedData{1};
 disp(data)
 % Not bad! It's basically ready to work with, although you might want to
 % convert the time into MATLAB's format.
-data.dateModified = datestr(datenum8601(data.dateModified));
+data.lastModified = datetime(datestr(datenum8601(data.lastModified)));
 
 % -------------------------------------------------------------------------
 %% State-level data (multiple entries per field)
@@ -73,11 +73,11 @@ data = struct2table(cat(1, importedData{:}));
 % structure are identical, so you can just concatenate them. Here the error
 % information says the fieldnames are not all the same :(
 
-
+%%
 % You could look inside each cell to figure out what's going on, but that
 % isn't very efficient. I tried a for-loop to report the total number of
 % fields in each cell
-for i = 1:numel(data)
+for i = 1:numel(importedData)
     fprintf('%s - %u fields\n', importedData{i}.state,... 
         numel(fieldnames(importedData{i})));
 end
@@ -137,12 +137,15 @@ data.recovered = semifullcells2doubles(data.recovered);
 data.checkTimeEt = datestr(data.checkTimeEt);
 data.lastUpdateEt = datestr(data.lastUpdateEt);
 
-% Convert ISO 8601 times into "datestr" using function from File Exchange
-% that does not accept an array of inputs like datestr.
-for i = 1:height(data)
-    data.dateModified(i) = datestr(datenum8601(data.dateModified{i}));
-    data.dateChecked(i) = datestr(datenum8601(data.dateModified{i}));
-end
+% Convert ISO 8601 times into "datetime". This is a slightly different time
+% format than the one above that used datenum8601... That one ended with 
+% ".000Z" and this one ends with ":00Z"
+data.dateModified = datetime(data.dateModified,... 
+                    'InputFormat', 'uuuu-MM-dd''T''HH:mm:ssXXX',... 
+                    'TimeZone', 'UTC');
+data.dateChecked = datetime(data.dateChecked,... 
+                    'InputFormat', 'uuuu-MM-dd''T''HH:mm:ssXXX',... 
+                    'TimeZone', 'UTC');
 
 % You may notice the "notes" field is always the same and requests that
 % "totalTestResults" be used instead of "total". So we can delete "total"
@@ -157,10 +160,11 @@ data.total = [];
 
 % Finally, the 'char' columns get put in individual cells which can be
 % a pain if you want to get at one specific value:
-T{1, 'state'}
+data{1, 'state'}    % Single value
+data.state          % Full column
 
 % So I'm converting them to a column of strings, a data type Matlab rolled
 % out in 2018 that's basically 'char' but easier to use in some cases
-T.state = string(T.state);
-T.fips = string(T.fips);
-T.hash = string(T.hash);
+data.state = string(data.state);
+data.fips = string(data.fips);
+data.hash = string(data.hash);
